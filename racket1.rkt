@@ -37,19 +37,31 @@
                                                     (if (func (car list)) (func (car list)) (RETURN-FIRST-NOT-FALSE func (cdr list))))))
 (define TENTS-SOLUTION (lambda (rows columns trees)
                          (define forb (forbiddenInit trees rows columns))
-                         (helper rows columns (cdr trees)
+                         (helper rows columns trees
                            forb
-                           (possNeighs (NEIGHBOR-LIST (car trees)) forb ))))
+                           (possNeighs (neigEliminate (car trees) (length rows) (length columns)) forb ))))
 
-(define helper (lambda (rows columns trees forbidden possible);asıl recursion nasıl biticek o da bir sorun
+(define helper (lambda (rows columns trees forbidden possible)
                  (if (null? trees) '() (neighborLoop rows columns trees forbidden possible))))
 
-(define neighborLoop(lambda(rows columns trees forbidden possible) (if (null? possible) '() (if (#t) ;if there is available position at the bottom
-                                                     (helper);falanfilan and concatanate
-                                                     (neighborLoop rows columns trees forbidden (cdr possible))))))
+(define neighborLoop(lambda(rows columns trees forbidden possible) (if (null? possible) '()
+        (if (haveSolution (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (cdr trees)
+            (set-union forbidden (forbAfter (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (allAdjacent (car possible))))
+              (possNeighs (neigEliminate (car trees) (length rows) (length columns))
+            (set-union forbidden (forbAfter (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (allAdjacent (car possible)))))) ;if have solution
+
+            (append (neighborLoop (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (cdr trees)
+            (set-union forbidden (forbAfter (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (allAdjacent (car possible))))
+              (possNeighs (neigEliminate (car trees) (length rows) (length columns))
+            (set-union forbidden (forbAfter (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (allAdjacent (car possible))))));falanfilan and concatanate
+                    (list (car possible)))
+            (neighborLoop rows columns trees forbidden (cdr possible))))))
 
 
-                                                                    
+(define haveSolution(lambda (rows columns trees forbidden possible) (if (neighborLoop rows columns trees forbidden possible)
+                                                                       #t
+                                                                       #f)))
+                                                                       
                                  
 
 
@@ -80,11 +92,12 @@
 (define possNeighs(lambda (neighs forbidden) (if (null? neighs) '() (if (set-member? forbidden (car neighs)) (possNeighs (cdr neighs) forbidden)
                                                                         (cons (car neighs) (possNeighs (cdr neighs) forbidden))))))
 
-(define neigEliminate(lambda(pair row col) (colElim(rowElim(NEIGHBOR-LIST pair)row )col)))
-(define rowElim(lambda(lst row) (if (null? lst) '() (if (or(= (cadr(car lst)) 0)(= (cadr(car lst)) (+ row 1))) (rowElim (cdr lst) row)
-                                                        (cons (car lst) (rowElim (cdr lst) row))))))
-(define colElim(lambda(lst col) (if (null? lst) '() (if (or(= (car(car lst)) 0)(= (car(car lst)) (+ col 1))) (colElim (cdr lst) col)
-                                                        (cons (car lst) (colElim (cdr lst) col))))))
+(define neigEliminate(lambda(pair row col) (colElim(rowElim(NEIGHBOR-LIST pair) col )row)))
+
+(define rowElim(lambda(lst col) (if (null? lst) '() (if (or(= (cadr(car lst)) 0)(= (cadr(car lst)) (+ col 1))) (rowElim (cdr lst) col)
+                                                        (cons (car lst) (rowElim (cdr lst) col))))))
+(define colElim(lambda(lst row) (if (null? lst) '() (if (or(= (car(car lst)) 0)(= (car(car lst)) (+ row 1))) (colElim (cdr lst) row)
+                                                        (cons (car lst) (colElim (cdr lst) row))))))
 
 
 ;(define ast (list->set '((1 2) (2 3) (3 4) (1 2))))
