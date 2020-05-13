@@ -50,19 +50,20 @@
               (possNeighs (neigEliminate (car trees) (length rows) (length columns))
             (set-union forbidden (forbAfter (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (allAdjacent (car possible)))))) ;if have solution
 
-            (append (neighborLoop (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (cdr trees)
+            (append (helper (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (cdr trees)
             (set-union forbidden (forbAfter (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (allAdjacent (car possible))))
               (possNeighs (neigEliminate (car trees) (length rows) (length columns))
             (set-union forbidden (forbAfter (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (allAdjacent (car possible))))));falanfilan and concatanate
                     (list (car possible)))
+            
             (neighborLoop rows columns trees forbidden (cdr possible))))))
 
 
-(define haveSolution(lambda (rows columns trees forbidden possible) (if (neighborLoop rows columns trees forbidden possible)
+(define haveSolution(lambda (rows columns trees forbidden possible) (if (null? trees)
                                                                        #t
-                                                                       #f)))
-                                                                       
-                                 
+                                                                      (if (null? possible) #f
+                                                   (neighborLoop rows columns trees forbidden possible)))))                                                                       
+      ;(neighborLoop rows columns trees forbidden possible)                           
 
 
  ;  (helper rows columns trees forbidden (cdr possible))              
