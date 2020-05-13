@@ -37,14 +37,14 @@
                                                     (if (func (car list)) (func (car list)) (RETURN-FIRST-NOT-FALSE func (cdr list))))))
 (define TENTS-SOLUTION (lambda (rows columns trees)
                          (define forb (forbiddenInit trees rows columns))
-                         (helper rows columns trees
+                         (helper rows columns (cdr trees)
                            forb
                            (possNeighs (neigEliminate (car trees) (length rows) (length columns)) forb ))))
 
 (define helper (lambda (rows columns trees forbidden possible)
-                 (if (null? trees) '() (neighborLoop rows columns trees forbidden possible))))
+                 (if (null? trees) (list (car possible)) (neighborLoop rows columns trees forbidden possible))))
 
-(define neighborLoop(lambda(rows columns trees forbidden possible) (if (null? possible) '()
+(define neighborLoop(lambda(rows columns trees forbidden possible) (if (null? possible) #f
         (if (haveSolution (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (cdr trees)
             (set-union forbidden (forbAfter (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (allAdjacent (car possible))))
               (possNeighs (neigEliminate (car trees) (length rows) (length columns))
@@ -59,10 +59,12 @@
             (neighborLoop rows columns trees forbidden (cdr possible))))))
 
 
-(define haveSolution(lambda (rows columns trees forbidden possible) (if (null? trees)
-                                                                       #t
-                                                                      (if (null? possible) #f
-                                                   (neighborLoop rows columns trees forbidden possible)))))                                                                       
+
+
+(define haveSolution(lambda (rows columns trees forbidden possible) (if (null? possible)
+                                                                       #f
+                                                                      (if (null? trees) #t
+                                                   (neighborLoop rows columns trees forbidden possible)))))                                                                   
       ;(neighborLoop rows columns trees forbidden possible)                           
 
 
