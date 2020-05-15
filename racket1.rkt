@@ -24,9 +24,9 @@
 (define decr-Nth(lambda(list index) (if (= index 1) (cons (- (car list) 1) (cdr list)) (cons (car list) (decr-Nth (cdr list) (- index 1))))))
 
 (define RETURN-FIRST-NOT-FALSE(lambda(func list)(if (null? list) #f
-                                                    (if (func (car list)) (func (car list)) (RETURN-FIRST-NOT-FALSE func (cdr list))))))
+                                                    (or (func (car list)) (RETURN-FIRST-NOT-FALSE func (cdr list))))))
 (define TENTS-SOLUTION (lambda (list)
-                         (helper (car list) (cadr list) (cdr (caddr list))
+                         (neighborLoop (car list) (cadr list) (cdr (caddr list))
                           '()
                            (possibleLoop (neigEliminate (car (caddr list)) (length (car list)) (length (cadr list))) (caddr list) '() (car list) (cadr list) ))))
 
@@ -34,22 +34,14 @@
 ;columns (cadr list)
 ;trees(caddr list)
 
-(define helper (lambda (rows columns trees tents possible)
-                 (if (null? trees) (list (car possible)) (neighborLoop rows columns trees tents possible))))
 
 (define neighborLoop(lambda(rows columns trees tents possible) (if (null? possible) #f
-        (if (haveSolution (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (cdr trees)
+        (or (haveSolution (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (cdr trees)
             (cons (car possible) tents)
               (possibleLoop (neigEliminate (car trees) (length rows) (length columns)) (cdr trees) (cons (car possible) tents)
                (decr-Nth rows (car (car possible)))  (decr-Nth columns (cadr (car possible)))
             )) ;if have solution
 
-            (append (helper (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (cdr trees)
-                (cons (car possible) tents)
-              (possibleLoop (neigEliminate (car trees) (length rows) (length columns)) (cdr trees) (cons (car possible) tents)
-               (decr-Nth rows (car (car possible)))  (decr-Nth columns (cadr (car possible)))
-            ))
-                    (list (car possible)))
             
             (neighborLoop rows columns trees tents (cdr possible))))))
 
@@ -58,7 +50,7 @@
 
 (define haveSolution(lambda (rows columns trees tents possible) (if (null? possible)
                                                                        #f
-                                                                      (if (null? trees) #t
+                                                                      (if (null? trees) (cons (car possible) tents)
                                                    (neighborLoop rows columns trees tents possible)))))                                                                   
                                  
 
