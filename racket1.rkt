@@ -48,7 +48,7 @@
                 (cons (car possible) tents)
               (possibleLoop (neigEliminate (car trees) (length rows) (length columns)) (cdr trees) (cons (car possible) tents)
                (decr-Nth rows (car (car possible)))  (decr-Nth columns (cadr (car possible)))
-            ));falanfilan and concatanate
+            ))
                     (list (car possible)))
             
             (neighborLoop rows columns trees tents (cdr possible))))))
@@ -60,7 +60,7 @@
                                                                        #f
                                                                       (if (null? trees) #t
                                                    (neighborLoop rows columns trees tents possible)))))                                                                   
-      ;(neighborLoop rows columns trees forbidden possible)                           
+                                 
 
 (define zeroCoordinate(lambda(rows cols candidate) (if (or(= 0(list-ref rows (- (car candidate) 1)))(= 0(list-ref cols (- (cadr candidate) 1))))
                                                      #t #f)))
@@ -74,39 +74,7 @@
                                                                  (possibleLoop (cdr possibles) trees tents rows cols)
                                                                  (cons (car possibles) (possibleLoop (cdr possibles) trees tents rows cols))))))
 
-;  (helper rows columns trees forbidden (cdr possible))              
-;maybe we dont need it anymore
-(define forbiddenInit (lambda (trees rows cols) (set-union (gatherZeros rows cols) (list->set trees))))
-
-;do not have a bright future 
-(define forbAfter(lambda(rows cols adjs) (set-union (gatherZeros rows cols) adjs)))
-
-; (set-member? st v)
-;(set-add st v)
-;(list->set lst)
 ;(list-ref lst index) get the element at the given index
-
-
-;looks like a bunch of shit
-(define forRow(lambda (x length) (if (= length 0) '() (cons (list x length) (forRow x (- length 1))))))
-(define forColumn(lambda (x length) (if (= length 0) '() (cons (list length x) (forColumn x (- length 1))))))
-
-(define rowTraverse(lambda(list otLen x)(if (null? list) '() (if (= 0 (car list)) (append (forRow x otLen) (rowTraverse (cdr list) otLen (+ x 1)))
-                                                                 (rowTraverse (cdr list) otLen (+ x 1))))))
-
-(define colmTraverse(lambda(list otLen x)(if (null? list) '() (if (= 0 (car list)) (append (forColumn x otLen) (colmTraverse (cdr list) otLen (+ x 1)))
-                                                                 (colmTraverse (cdr list) otLen (+ x 1))))))
-
-(define gatherZeros(lambda(rows cols) (list->set (append(colmTraverse cols (length rows) 1)(rowTraverse rows (length cols) 1)))));list-> set may be change
-
-
-;not a bright future
-(define allAdjacent (lambda(x)(list->set (cons (list (car x) (cadr x)) (append (DIAGONAL-LIST x) (NEIGHBOR-LIST x))))))
-
-
-;this is the one will change greatly
-(define possNeighs(lambda (neighs forbidden) (if (null? neighs) '() (if (set-member? forbidden (car neighs)) (possNeighs (cdr neighs) forbidden)
-                                                                        (cons (car neighs) (possNeighs (cdr neighs) forbidden))))))
 
 ;this for proper elimination of out of map coordinates
 (define neigEliminate(lambda(pair row col) (colElim(rowElim(NEIGHBOR-LIST pair) col )row)))
@@ -117,7 +85,3 @@
                                                         (cons (car lst) (colElim (cdr lst) row))))))
 
 
-;(define ast (list->set '((1 2) (2 3) (3 4) (1 2))))
-;(possNeighs '((1 2) (5 6) (2 3) (7 8)) ast)
-(define sth(lambda(list) (define x (car list)) x))
-(define else (lambda(lst) (define y (sth lst)) (list y (cadr lst)) ))
