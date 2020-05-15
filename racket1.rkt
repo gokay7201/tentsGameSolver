@@ -1,15 +1,5 @@
 #lang racket
 ;2017400072
-(define sum-list(lambda(lst)
-                    (if(null? lst) 0 (+ (car lst)(sum-list (cdr lst))))))
-
-(define list-length(lambda(lst)
-                       (if (null? lst) 0
-                           (+ 1 (list-length(cdr lst))))))
-(define reduce-list(lambda(lst base f)
-                     (if(null? lst)
-                        base
-                        (f(car lst) (reduce-list(cdr lst) base f)))))
 
 (define NEIGHBOR-LIST(lambda(pair)  (list (list (car pair) (+ (cadr pair) 1))
                                     (list (+ (car pair) 1 ) (cadr pair))
@@ -35,43 +25,60 @@
 
 (define RETURN-FIRST-NOT-FALSE(lambda(func list)(if (null? list) #f
                                                     (if (func (car list)) (func (car list)) (RETURN-FIRST-NOT-FALSE func (cdr list))))))
-(define TENTS-SOLUTION (lambda (rows columns trees)
-                         (define forb (forbiddenInit trees rows columns))
-                         (helper rows columns (cdr trees)
-                           forb
-                           (possNeighs (neigEliminate (car trees) (length rows) (length columns)) forb ))))
+(define TENTS-SOLUTION (lambda (list)
+                         (helper (car list) (cadr list) (cdr (caddr list))
+                          '()
+                           (possibleLoop (neigEliminate (car (caddr list)) (length (car list)) (length (cadr list))) (caddr list) '() (car list) (cadr list) ))))
 
-(define helper (lambda (rows columns trees forbidden possible)
-                 (if (null? trees) (list (car possible)) (neighborLoop rows columns trees forbidden possible))))
+;row (car list)
+;columns (cadr list)
+;trees(caddr list)
 
-(define neighborLoop(lambda(rows columns trees forbidden possible) (if (null? possible) #f
+(define helper (lambda (rows columns trees tents possible)
+                 (if (null? trees) (list (car possible)) (neighborLoop rows columns trees tents possible))))
+
+(define neighborLoop(lambda(rows columns trees tents possible) (if (null? possible) #f
         (if (haveSolution (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (cdr trees)
-            (set-union forbidden (forbAfter (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (allAdjacent (car possible))))
-              (possNeighs (neigEliminate (car trees) (length rows) (length columns))
-            (set-union forbidden (forbAfter (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (allAdjacent (car possible)))))) ;if have solution
+            (cons (car possible) tents)
+              (possibleLoop (neigEliminate (car trees) (length rows) (length columns)) (cdr trees) (cons (car possible) tents)
+               (decr-Nth rows (car (car possible)))  (decr-Nth columns (cadr (car possible)))
+            )) ;if have solution
 
             (append (helper (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (cdr trees)
-            (set-union forbidden (forbAfter (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (allAdjacent (car possible))))
-              (possNeighs (neigEliminate (car trees) (length rows) (length columns))
-            (set-union forbidden (forbAfter (decr-Nth rows (car (car possible))) (decr-Nth columns (cadr (car possible))) (allAdjacent (car possible))))));falanfilan and concatanate
+                (cons (car possible) tents)
+              (possibleLoop (neigEliminate (car trees) (length rows) (length columns)) (cdr trees) (cons (car possible) tents)
+               (decr-Nth rows (car (car possible)))  (decr-Nth columns (cadr (car possible)))
+            ));falanfilan and concatanate
                     (list (car possible)))
             
-            (neighborLoop rows columns trees forbidden (cdr possible))))))
+            (neighborLoop rows columns trees tents (cdr possible))))))
 
 
 
 
-(define haveSolution(lambda (rows columns trees forbidden possible) (if (null? possible)
+(define haveSolution(lambda (rows columns trees tents possible) (if (null? possible)
                                                                        #f
                                                                       (if (null? trees) #t
-                                                   (neighborLoop rows columns trees forbidden possible)))))                                                                   
+                                                   (neighborLoop rows columns trees tents possible)))))                                                                   
       ;(neighborLoop rows columns trees forbidden possible)                           
 
+(define zeroCoordinate(lambda(rows cols candidate) (if (or(= 0(list-ref rows (- (car candidate) 1)))(= 0(list-ref cols (- (cadr candidate) 1))))
+                                                     #t #f)))
 
- ;  (helper rows columns trees forbidden (cdr possible))              
+;if true candidate is not a candidate anymore
+(define ultimateController(lambda (trees tents rows cols candidate) (if (or (isMember candidate trees)(ADJACENT-WITH-LIST candidate tents)
+                                                                             (zeroCoordinate rows cols candidate)) #t #f)))
 
+(define possibleLoop(lambda(possibles trees tents rows cols)(if (null? possibles) '()
+                      (if (ultimateController trees tents rows cols (car possibles))
+                                                                 (possibleLoop (cdr possibles) trees tents rows cols)
+                                                                 (cons (car possibles) (possibleLoop (cdr possibles) trees tents rows cols))))))
+
+;  (helper rows columns trees forbidden (cdr possible))              
+;maybe we dont need it anymore
 (define forbiddenInit (lambda (trees rows cols) (set-union (gatherZeros rows cols) (list->set trees))))
 
+;do not have a bright future 
 (define forbAfter(lambda(rows cols adjs) (set-union (gatherZeros rows cols) adjs)))
 
 ; (set-member? st v)
@@ -79,6 +86,8 @@
 ;(list->set lst)
 ;(list-ref lst index) get the element at the given index
 
+
+;looks like a bunch of shit
 (define forRow(lambda (x length) (if (= length 0) '() (cons (list x length) (forRow x (- length 1))))))
 (define forColumn(lambda (x length) (if (= length 0) '() (cons (list length x) (forColumn x (- length 1))))))
 
@@ -90,11 +99,16 @@
 
 (define gatherZeros(lambda(rows cols) (list->set (append(colmTraverse cols (length rows) 1)(rowTraverse rows (length cols) 1)))));list-> set may be change
 
+
+;not a bright future
 (define allAdjacent (lambda(x)(list->set (cons (list (car x) (cadr x)) (append (DIAGONAL-LIST x) (NEIGHBOR-LIST x))))))
 
+
+;this is the one will change greatly
 (define possNeighs(lambda (neighs forbidden) (if (null? neighs) '() (if (set-member? forbidden (car neighs)) (possNeighs (cdr neighs) forbidden)
                                                                         (cons (car neighs) (possNeighs (cdr neighs) forbidden))))))
 
+;this for proper elimination of out of map coordinates
 (define neigEliminate(lambda(pair row col) (colElim(rowElim(NEIGHBOR-LIST pair) col )row)))
 
 (define rowElim(lambda(lst col) (if (null? lst) '() (if (or(= (cadr(car lst)) 0)(= (cadr(car lst)) (+ col 1))) (rowElim (cdr lst) col)
